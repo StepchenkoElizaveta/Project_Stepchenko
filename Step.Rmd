@@ -1,0 +1,102 @@
+---
+title: 'Итоговое задание'
+author: "Степченко Елизавета"
+output: 
+  html_document:
+    highlight: monochrome
+number_sections: yes
+toc: yes
+lang: ru-RU
+
+---
+
+  
+```{r, message=FALSE, warning=FALSE}  
+  library(tidyverse)
+  library(skimr)
+  library(rio)
+  library(corrplot)
+  library(tidyr)
+```
+
+
+# Описательный анализ данных
+
+```{r, message = FALSE, warning=FALSE}  
+b_d <- import("Electric Bill Data.txt")
+glimpse(b_d)
+skim(b_d)
+str(b_d)
+head(b_d)
+tail(b_d)
+```
+
+- В наборе данных 13 переменных
+- 120 наблюдений
+
+
+### Тема для графиков:
+
+```{r} 
+theme_i <- function() {
+    theme_minimal() +
+  theme(
+    text = element_text(color = "gray25"),
+    plot.subtitle = element_text(size = 12),
+    plot.caption = element_text(color = "gray30"),
+    plot.background = element_rect(fill = "gray95"),
+    plot.margin = unit(c(5, 10, 5, 10), units = "mm")
+    )
+}
+```
+
+##Построение графиков:
+
+#### Количественные переменные:
+
+```{r, message = FALSE, warning=FALSE} 
+ggplot(b_d) +
+  geom_histogram(aes(x = CONSUMPTION), title = "Потребление энергии") +
+  labs(x = 'Потребление', y = 'Распределение потребления энергии', title = 'Использование энергии по месяцам') +
+  theme_i()
+
+```
+
+#### Качественные переменные:
+
+```{r, message = FALSE, warning=FALSE} 
+ggplot(b_d %>% group_by(MONTH) %>% summarise(median_cons = median(CONSUMPTION)))+
+  geom_point(aes(x =MONTH, y = median_cons)) +
+  labs(x = 'Месяц', y = 'Потребление энергии', title = 'Использование энергии по месяцам') +
+  theme_i()
+
+```
+
+
+```{r, message = FALSE, warning=FALSE} 
+ggplot(b_d %>% filter(YEAR == 1991) %>% group_by(MONTH) %>% summarise(median_cons = median(CONSUMPTION)))+
+  geom_point(aes(x =MONTH, y = median_cons)) +
+  labs(x = 'Месяц', y = 'Потребление энергии', title = 'Использование энергии по месяцам в 1991') +
+  theme_i()
+
+```
+
+
+```{r, message = FALSE, warning=FALSE} 
+ggplot(b_d %>% group_by(TEMP) %>% summarise(median_cons = median(CONSUMPTION)))+
+  geom_point(aes(x =TEMP, y = median_cons)) +
+  labs(x = 'Месяц', y = 'Средняя температура', title = 'Средняя температура по месяцам') +
+  theme_i()
+```
+
+## Корреляционная матрица:
+
+```{r, message = FALSE, warning=FALSE} 
+b_d_c <- data.frame(as.integer(b_d$TEMP), b_d$SIZE, b_d$CONSUMPTION)
+glimpse(b_d_c)
+b_d_cor <- cor(b_d_c)
+b_d_cor
+corrplot(b_d_cor, method = 'square', type = 'upper')
+```
+
+Все логично: чем больше температура, тем меньше потребление энергии; чем больше площадь, тем больше потребление энергии.
